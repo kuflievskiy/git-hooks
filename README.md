@@ -1,4 +1,4 @@
-# git-hooks
+# git-hooks [![License MIT](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kuflievskiy/git-hooks/blob/master/LICENSE)
 
 #### How to use.
 
