@@ -1,0 +1,44 @@
+#!/bin/bash
+
+read -p "You're about to push, are you sure you won't break the build? " -n 1 -r < /dev/tty
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    exit 0 # push will execute
+fi
+
+DB_NAME=`cat wp-config.php | grep "'DB_NAME'" | cut -d \' -f 4`
+DB_USER=`cat wp-config.php | grep "'DB_USER'" | cut -d \' -f 4`
+DB_PASS=`cat wp-config.php | grep "'DB_PASSWORD'" | cut -d \' -f 4`
+DB_HOST=`cat wp-config.php | grep "'DB_HOST'" | cut -d \' -f 4`
+
+CMD="sudo bash tests/install.sh $DB_USER $DB_PASS $DB_HOST latest master" # Command that runs your tests
+
+PROTECTED_BRANCH='staging'
+
+# Check if we actually have commits to push
+commits=`git log @{u}..`
+if [ -z "$commits" ]; then
+    echo 'Check if we actually have commits to push FAILED'
+    #
+fi
+
+CURRENT_BRANCH=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+sed -i 's|||' tests/install.sh
+
+
+if [[ $CURRENT_BRANCH = $PROTECTED_BRANCH ]]; then
+    $CMD
+    RESULT=$?
+    echo 'RESULT:'
+    echo $RESULT
+    if [ $RESULT -ne 0 ]; then
+        echo "failed $CMD"
+        exit 1
+    fi
+fi
+
+
+# Well done, push to the repository is allowed
+exit 0 # push will execute
